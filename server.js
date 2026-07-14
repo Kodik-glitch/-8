@@ -4,32 +4,40 @@ const { Server } = require('socket.io');
 
 const app = express();
 const server = http.createServer(app);
-const io = new Server(server, {
-  cors: { origin: "*" }
-});
+const io = new Server(server, { cors: { origin: "*" } });
 
-// Отдаем пользователю наш интерфейс (index.html)
+// Массив для хранения истории (теперь последние 200 сообщений)
+let chatHistory = [];
+
 app.get('/', (req, res) => {
   res.sendFile(__dirname + '/index.html');
 });
 
-// Обработка подключений
 io.on('connection', (socket) => {
-  console.log('Кто-то зашел в чат!');
+  console.log('Пользователь подключился');
 
-  // Слушаем событие отправки сообщения
+  // Отправляем историю (до 200 сообщений) новому пользователю при входе
+  socket.emit('chat history', chatHistory);
+
   socket.on('chat message', (data) => {
-    // Рассылаем это сообщение вообще всем подключенным пользователям
+    // Добавляем новое сообщение в историю
+    chatHistory.push(data);
+    
+    // Если сообщений стало больше 200, удаляем самое старое
+    if (chatHistory.length > 200) {
+      chatHistory.shift();
+    }
+
+    // Рассылаем сообщение всем участникам чата
     io.emit('chat message', data);
   });
 
   socket.on('disconnect', () => {
-    console.log('Пользователь покинул чат.');
+    console.log('Пользователь отключился');
   });
 });
 
-// Запускаем сервер
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log(`Чат работает на порту ${PORT}`);
+  console.log(`Сервер запущен на порту ${PORT}`);
 });
