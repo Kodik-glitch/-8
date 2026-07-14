@@ -3,28 +3,160 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Глобальный Микро-Чат</title>
+  <title>Глобальный Чат</title>
   <style>
-    body { font-family: -apple-system, sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 90vh; background: #f0f2f5; }
-    #chat-container { width: 100%; max-width: 600px; margin: auto; display: flex; flex-direction: column; height: 100%; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
-    #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-    #messages li { padding: 10px 15px; background: #e9ecef; border-radius: 15px; max-width: 70%; align-self: flex-start; }
-    #messages li.my-msg { background: #007bff; color: white; align-self: flex-end; }
-    #form { display: flex; padding: 15px; border-top: 1px solid #eee; background: #fff; }
-    #input-name { width: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-right: 10px; }
-    #input-msg { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
-    button { padding: 10px 20px; margin-left: 10px; border: none; background: #007bff; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; }
-    button:hover { background: #0056b3; }
+    /* Переменные для тем оформления */
+    :root {
+      --bg-color: #f0f2f5;
+      --chat-bg: #ffffff;
+      --text-color: #333333;
+      --msg-bg: #e9ecef;
+      --msg-text: #333333;
+      --border-color: #eeeeee;
+      --input-bg: #ffffff;
+    }
+
+    [data-theme="dark"] {
+      --bg-color: #18191a;
+      --chat-bg: #242526;
+      --text-color: #e4e6eb;
+      --msg-bg: #3a3b3c;
+      --msg-text: #e4e6eb;
+      --border-color: #3e4042;
+      --input-bg: #3a3b3c;
+    }
+
+    body { 
+      font-family: system-ui, -apple-system, sans-serif; 
+      margin: 0; 
+      padding: 20px; 
+      display: flex; 
+      flex-direction: column; 
+      height: 90vh; 
+      background: var(--bg-color); 
+      color: var(--text-color);
+      transition: background 0.3s, color 0.3s;
+    }
+
+    #chat-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%;
+      max-width: 600px;
+      margin: 0 auto 10px auto;
+    }
+
+    #theme-toggle {
+      background: none;
+      border: 2px solid #007bff;
+      color: #007bff;
+      padding: 8px 12px;
+      border-radius: 20px;
+      cursor: pointer;
+      font-weight: bold;
+      transition: all 0.2s;
+    }
+
+    #theme-toggle:hover {
+      background: #007bff;
+      color: white;
+    }
+
+    #chat-container { 
+      width: 100%; 
+      max-width: 600px; 
+      margin: auto; 
+      display: flex; 
+      flex-direction: column; 
+      height: 100%; 
+      background: var(--chat-bg); 
+      border-radius: 12px; 
+      box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+      overflow: hidden; 
+      border: 1px solid var(--border-color);
+    }
+
+    #messages { 
+      list-style-type: none; 
+      margin: 0; 
+      padding: 20px; 
+      flex-grow: 1; 
+      overflow-y: auto; 
+      display: flex; 
+      flex-direction: column; 
+      gap: 10px; 
+    }
+
+    #messages li { 
+      padding: 10px 15px; 
+      background: var(--msg-bg); 
+      color: var(--msg-text);
+      border-radius: 15px; 
+      max-width: 70%; 
+      align-self: flex-start; 
+      word-break: break-word; 
+    }
+
+    #messages li.my-msg { 
+      background: #007bff; 
+      color: white; 
+      align-self: flex-end; 
+    }
+
+    #form { 
+      display: flex; 
+      padding: 15px; 
+      border-top: 1px solid var(--border-color); 
+      background: var(--chat-bg); 
+    }
+
+    #input-name { 
+      width: 100px; 
+      padding: 10px; 
+      border: 1px solid var(--border-color); 
+      border-radius: 8px; 
+      margin-right: 10px; 
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    #input-msg { 
+      flex-grow: 1; 
+      padding: 10px; 
+      border: 1px solid var(--border-color); 
+      border-radius: 8px; 
+      background: var(--input-bg);
+      color: var(--text-color);
+    }
+
+    #send-btn { 
+      padding: 10px 20px; 
+      margin-left: 10px; 
+      border: none; 
+      background: #007bff; 
+      color: white; 
+      border-radius: 8px; 
+      cursor: pointer; 
+      font-weight: bold; 
+    }
+
+    #send-btn:hover { background: #0056b3; }
   </style>
 </head>
 <body>
 
+  <div id="chat-header">
+    <h2>🌍 Глобальный Чат</h2>
+    <button id="theme-toggle">🌓 Тема</button>
+  </div>
+
   <div id="chat-container">
     <ul id="messages"></ul>
     <form id="form">
-      <input id="input-name" placeholder="Твой ник" required />
-      <input id="input-msg" placeholder="Напиши сообщение..." autocomplete="off" required />
-      <button>Отправить</button>
+      <input id="input-name" placeholder="Имя" required />
+      <input id="input-msg" placeholder="Сообщение..." autocomplete="off" required />
+      <button id="send-btn">Отправить</button>
     </form>
   </div>
 
@@ -35,31 +167,37 @@
     const inputMsg = document.getElementById('input-msg');
     const inputName = document.getElementById('input-name');
     const messages = document.getElementById('messages');
+    const themeToggle = document.getElementById('theme-toggle');
+
+    // Логика переключения темы
+    themeToggle.addEventListener('click', () => {
+      const currentTheme = document.documentElement.getAttribute('data-theme');
+      if (currentTheme === 'dark') {
+        document.documentElement.setAttribute('data-theme', 'light');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'dark');
+      }
+    });
 
     form.addEventListener('submit', (e) => {
       e.preventDefault();
-      const payload = {
-        name: inputName.value,
-        text: inputMsg.value
-      };
-      
-      // Отправляем объект с ником и сообщением на сервер
-      socket.emit('chat message', payload);
-      inputMsg.value = '';
+      if (inputMsg.value.trim() && inputName.value.trim()) {
+        socket.emit('chat message', {
+          name: inputName.value,
+          text: inputMsg.value
+        });
+        inputMsg.value = '';
+      }
     });
 
-    // Слушаем сообщения от сервера
     socket.on('chat message', (data) => {
       const item = document.createElement('li');
       item.innerHTML = `<strong>${data.name}:</strong> ${data.text}`;
-      
-      // Если ник совпадает с текущим, красим в синий и прижимаем вправо
       if (data.name === inputName.value) {
         item.classList.add('my-msg');
       }
-      
       messages.appendChild(item);
-      messages.scrollTop = messages.scrollHeight; // Скролл вниз
+      messages.scrollTop = messages.scrollHeight;
     });
   </script>
 </body>
