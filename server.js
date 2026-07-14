@@ -6,7 +6,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server, { cors: { origin: "*" } });
 
-// Массив для хранения истории (теперь последние 200 сообщений)
+// Массив для хранения истории (последние 200 сообщений)
 let chatHistory = [];
 
 app.get('/', (req, res) => {
