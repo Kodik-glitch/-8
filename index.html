@@ -169,6 +169,16 @@
     const messages = document.getElementById('messages');
     const themeToggle = document.getElementById('theme-toggle');
 
+    // Восстанавливаем сохраненное имя пользователя из памяти браузера
+    if (localStorage.getItem('chat-nickname')) {
+      inputName.value = localStorage.getItem('chat-nickname');
+    }
+
+    // Следим за изменением имени и сохраняем его в память
+    inputName.addEventListener('input', () => {
+      localStorage.setItem('chat-nickname', inputName.value);
+    });
+
     // Логика переключения темы
     themeToggle.addEventListener('click', () => {
       const currentTheme = document.documentElement.getAttribute('data-theme');
@@ -179,9 +189,33 @@
       }
     });
 
+    // Функция для создания элемента сообщения на экране
+    function appendMessage(data) {
+      const item = document.createElement('li');
+      item.innerHTML = `<strong>${data.name}:</strong> ${data.text}`;
+      
+      // Сверяем имя автора с именем в поле ввода для подсветки
+      if (data.name === inputName.value) {
+        item.classList.add('my-msg');
+      }
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight; // Плавный скролл вниз
+    }
+
+    // Принимаем всю историю сообщений от сервера при входе/обновлении
+    socket.on('chat history', (history) => {
+      messages.innerHTML = ''; // Очищаем экран перед рендером истории
+      history.forEach(data => {
+        appendMessage(data);
+      });
+    });
+
+    // Отправка нового сообщения
     form.addEventListener('submit', (e) => {
       e.preventDefault();
       if (inputMsg.value.trim() && inputName.value.trim()) {
+        localStorage.setItem('chat-nickname', inputName.value);
+
         socket.emit('chat message', {
           name: inputName.value,
           text: inputMsg.value
@@ -190,14 +224,9 @@
       }
     });
 
+    // Получение новых сообщений в реальном времени
     socket.on('chat message', (data) => {
-      const item = document.createElement('li');
-      item.innerHTML = `<strong>${data.name}:</strong> ${data.text}`;
-      if (data.name === inputName.value) {
-        item.classList.add('my-msg');
-      }
-      messages.appendChild(item);
-      messages.scrollTop = messages.scrollHeight;
+      appendMessage(data);
     });
   </script>
 </body>
