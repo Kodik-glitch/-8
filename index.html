@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Глобальный Микро-Чат</title>
+  <style>
+    body { font-family: -apple-system, sans-serif; margin: 0; padding: 20px; display: flex; flex-direction: column; height: 90vh; background: #f0f2f5; }
+    #chat-container { width: 100%; max-width: 600px; margin: auto; display: flex; flex-direction: column; height: 100%; background: white; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); overflow: hidden; }
+    #messages { list-style-type: none; margin: 0; padding: 20px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    #messages li { padding: 10px 15px; background: #e9ecef; border-radius: 15px; max-width: 70%; align-self: flex-start; }
+    #messages li.my-msg { background: #007bff; color: white; align-self: flex-end; }
+    #form { display: flex; padding: 15px; border-top: 1px solid #eee; background: #fff; }
+    #input-name { width: 100px; padding: 10px; border: 1px solid #ddd; border-radius: 8px; margin-right: 10px; }
+    #input-msg { flex-grow: 1; padding: 10px; border: 1px solid #ddd; border-radius: 8px; }
+    button { padding: 10px 20px; margin-left: 10px; border: none; background: #007bff; color: white; border-radius: 8px; cursor: pointer; font-weight: bold; }
+    button:hover { background: #0056b3; }
+  </style>
+</head>
+<body>
+
+  <div id="chat-container">
+    <ul id="messages"></ul>
+    <form id="form">
+      <input id="input-name" placeholder="Твой ник" required />
+      <input id="input-msg" placeholder="Напиши сообщение..." autocomplete="off" required />
+      <button>Отправить</button>
+    </form>
+  </div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io();
+    const form = document.getElementById('form');
+    const inputMsg = document.getElementById('input-msg');
+    const inputName = document.getElementById('input-name');
+    const messages = document.getElementById('messages');
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const payload = {
+        name: inputName.value,
+        text: inputMsg.value
+      };
+      
+      // Отправляем объект с ником и сообщением на сервер
+      socket.emit('chat message', payload);
+      inputMsg.value = '';
+    });
+
+    // Слушаем сообщения от сервера
+    socket.on('chat message', (data) => {
+      const item = document.createElement('li');
+      item.innerHTML = `<strong>${data.name}:</strong> ${data.text}`;
+      
+      // Если ник совпадает с текущим, красим в синий и прижимаем вправо
+      if (data.name === inputName.value) {
+        item.classList.add('my-msg');
+      }
+      
+      messages.appendChild(item);
+      messages.scrollTop = messages.scrollHeight; // Скролл вниз
+    });
+  </script>
+</body>
+</html>
