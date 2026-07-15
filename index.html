@@ -14,6 +14,7 @@
       --msg-text: #333333;
       --border-color: #eeeeee;
       --input-bg: #ffffff;
+      --time-color: #888888;
     }
 
     [data-theme="dark"] {
@@ -24,6 +25,7 @@
       --msg-text: #e4e6eb;
       --border-color: #3e4042;
       --input-bg: #3a3b3c;
+      --time-color: #b0b3b8;
     }
 
     body { 
@@ -45,6 +47,18 @@
       width: 100%;
       max-width: 600px;
       margin: 0 auto 10px auto;
+    }
+
+    #header-info h2 {
+      margin: 0;
+      font-size: 1.5rem;
+    }
+
+    #online-status {
+      font-size: 0.9rem;
+      color: #28a745;
+      font-weight: bold;
+      margin: 5px 0 0 0;
     }
 
     #theme-toggle {
@@ -96,12 +110,27 @@
       max-width: 70%; 
       align-self: flex-start; 
       word-break: break-word; 
+      position: relative;
+      display: flex;
+      flex-direction: column;
     }
 
     #messages li.my-msg { 
       background: #007bff; 
       color: white; 
       align-self: flex-end; 
+    }
+
+    /* Стиль для времени сообщения */
+    .msg-time {
+      font-size: 0.75rem;
+      color: var(--time-color);
+      align-self: flex-end;
+      margin-top: 4px;
+    }
+
+    #messages li.my-msg .msg-time {
+      color: #e0e0e0; /* Светлое время на синем фоне */
     }
 
     #form { 
@@ -147,7 +176,10 @@
 <body>
 
   <div id="chat-header">
-    <h2>🌍 Глобальный Чат</h2>
+    <div id="header-info">
+      <h2>🌍 Глобальный Чат</h2>
+      <p id="online-status">В сети: 0</p>
+    </div>
     <button id="theme-toggle">🌓 Тема</button>
   </div>
 
@@ -168,6 +200,7 @@
     const inputName = document.getElementById('input-name');
     const messages = document.getElementById('messages');
     const themeToggle = document.getElementById('theme-toggle');
+    const onlineStatus = document.getElementById('online-status');
 
     // Восстанавливаем сохраненное имя пользователя из памяти браузера
     if (localStorage.getItem('chat-nickname')) {
@@ -192,7 +225,12 @@
     // Функция для создания элемента сообщения на экране
     function appendMessage(data) {
       const item = document.createElement('li');
-      item.innerHTML = `<strong>${data.name}:</strong> ${data.text}`;
+      
+      // Выводим имя, текст и время отправки
+      item.innerHTML = `
+        <div><strong>${data.name}:</strong> ${data.text}</div>
+        <div class="msg-time">${data.time || '00:00'}</div>
+      `;
       
       // Сверяем имя автора с именем в поле ввода для подсветки
       if (data.name === inputName.value) {
@@ -201,6 +239,11 @@
       messages.appendChild(item);
       messages.scrollTop = messages.scrollHeight; // Плавный скролл вниз
     }
+
+    // ТУТ МАГИЯ: Обновляем счётчик онлайн на экране
+    socket.on('online count', (count) => {
+      onlineStatus.textContent = `В сети: ${count}`;
+    });
 
     // Принимаем всю историю сообщений от сервера при входе/обновлении
     socket.on('chat history', (history) => {
